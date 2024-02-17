@@ -1,0 +1,43 @@
+#!/bin/bash
+SITE_NAME=$(jq -r '.name' config.json)
+
+set -e
+
+echo "Generating HTML files."
+# Get all posts from database
+result=$(sqlite3 --init /dev/null blog.db <<ESQL
+.mode json
+SELECT id, title, content, published FROM blog;
+ESQL
+)
+# Loop through all post
+articles=""
+echo "$result" | jq -c '.[]'
+# Check if we have posts
+if [ -z "$result" ]; then
+    echo "No posts found."
+    exit 1
+fi
+
+for encoded in $(echo "$result" | jq -r '.[] | @base64'); do
+    row=$(echo "$encoded" | base64 --decode)
+    # First column.
+    echo "row: $row"
+    title=$(echo "$row" | jq -r '.title')
+    content=$(echo "$row" | jq -r '.content' | tr '\n' ' ')
+    first_paragraph=$(echo "$content" | htmlq p:first-of-type)
+    articles+=$(cat <<EOF
+<a href="$title.html">
+    <article>
+        <h2>$title</h2>
+        $first_paragraph
+    </article>
+</a>
+EOF
+)
+done
+articles=$(echo "$articles" | tr '\n' ' ')
+sed "s#{{siteName}}#$SITE_NAME#g" layouts/blog.layout.html > docs/index.html
+sed -i '' "s#{{title}}#Home#g" docs/index.html
+sed -i '' "s#{{content}}#$articles#g" docs/index.html
+echo "Generating HTML files done."

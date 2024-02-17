@@ -1,0 +1,8 @@
+#!/bin/bash
+
+db_file=$(jq -r '.dbFile' config.json)
+
+echo "Create database."
+touch "$db_file"
+echo "Create database done."
+sqlite3 "$db_file" "CREATE TABLE blog (id INTEGER PRIMARY KEY AUTOINCREMENT, title TEXT, content TEXT, date TEXT, published BOOLEAN);"

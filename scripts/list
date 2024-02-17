@@ -1,0 +1,5 @@
+#!/bin/bash
+
+echo "Listing all blog posts."
+sqlite3 blog.db "SELECT * FROM blog;"
+echo "Listing all blog posts done."

@@ -1,0 +1,26 @@
+#!/bin/bash
+
+set -e
+
+# Handle flags
+while getopts "f:" opt; do
+    case $opt in
+        f)
+            file=$OPTARG
+            ;;
+        \?)
+            echo "Invalid option: -$OPTARG" >&2
+            exit 1
+            ;;
+    esac
+done
+
+echo "Writing file to database."
+# Get current date +%Y-%m-%d %H:%M:%S and store in make variable
+DATE=$(date +%Y-%m-%d\ %H:%M:%S)
+# Transform markdown to html and store in make variable
+CONTENT=$(pandoc -f markdown -t html "$file")
+TITLE=$(basename "$file" .md | tr '-' ' ' | sed 's/./\U&/1')
+# Write to database
+sqlite3 blog.db "INSERT INTO blog (title, content, date, published) VALUES ('$TITLE', '$CONTENT', '$DATE', 0);"
+echo "Writing file to database done."

@@ -1,0 +1,42 @@
+#!/bin/bash
+SITE_NAME=$(jq -r '.name' config.json)
+
+set -e
+# Handle flags
+while getopts "i:" opt; do
+    case $opt in
+        i)
+            ID=$OPTARG
+            ;;
+        \?)
+            echo "Invalid option: -$OPTARG" >&2
+            exit 1
+            ;;
+    esac
+done
+
+echo "Generating HTML files."
+RESULT=$(sqlite3 --init /dev/null blog.db <<EOF
+.mode json
+SELECT title, content, published FROM blog WHERE id = $ID;
+EOF
+)
+PUBLISHED=$(echo "$RESULT" | jq -r '.[0].published')
+if [ "$PUBLISHED" -eq 1 ]; then
+    echo "Post already published."
+    exit 1
+fi
+# First column.
+TITLE=$(echo "$RESULT" | jq -r '.[0].title')
+echo "TITLE: $TITLE"
+# Second column.
+CONTENT=$(echo "$RESULT" | jq -r '.[0].content' | tr '\n' ' ')
+echo "CONTENT: $CONTENT"
+# Transform markdown to html and store in make variable.
+sed "s#{{title}}#$TITLE#g" layouts/blog.layout.html > "docs/$TITLE.html"
+sed -i '' "s#{{siteName}}#$SITE_NAME#g" "docs/$TITLE.html"
+sed -i '' "s#{{content}}#$CONTENT#g" "docs/$TITLE.html"
+echo "Generating HTML files done."
+echo "Updating record in database."
+sqlite3 blog.db "UPDATE blog SET published = 1 WHERE id = $ID;"
+echo "Updating record in database done."

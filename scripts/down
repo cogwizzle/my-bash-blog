@@ -1,0 +1,7 @@
+#!/bin/bash
+
+db_file=$(jq -r '.dbFile' config.json)
+
+echo "Drop database."
+rm "$db_file"
+echo "Drop database done."

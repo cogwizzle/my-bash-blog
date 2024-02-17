@@ -1,0 +1,8 @@
+#!/bin/bash
+
+echo "Install dependencies."
+brew install htmlq
+brew install jq
+brew install pandoc
+brew install sqlite3
+echo "Install dependencies done."
