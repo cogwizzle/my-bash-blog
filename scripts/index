@@ -27,12 +27,12 @@ for encoded in $(echo "$result" | jq -r '.[] | @base64'); do
     content=$(echo "$row" | jq -r '.content' | tr '\n' ' ')
     first_paragraph=$(echo "$content" | htmlq p:first-of-type)
     articles+=$(cat <<EOF
-<a href="$title.html">
     <article>
-        <h2>$title</h2>
+        <a style="text-decoration:none;" href="$title.html">
+            <h2 style="text-transform: capitalize;">$title</h2>
+        </a>
         $first_paragraph
     </article>
-</a>
 EOF
 )
 done
