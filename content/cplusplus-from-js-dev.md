@@ -7,13 +7,30 @@ My favorite language is JavaScript. I've been primarily developing in JavaScript
 
 Back in college, when I was writing C++ I remember having to clear memory by hand and worrying about the system running away with memory. Many times in college, I got the dreaded core dump message after my terminal locked up. One of the pillars of C++ is that you have low level control to the computer. There is more responsibility that comes with that. The language does not have garbage collection. You, the developer, manage the memory yourself. Let's show an example of what memory management looked like when I wrote C++ before.
 
-`int main() { Car *p = new Car(); // Create a new car object. // Do other stuff with car. p->drive(); // Drive the car. delete p; // Delete the car from memory when done. return 0; }`
+```cplusplus
+int main() {
+    Car *p = new Car(); // Create a new car object.
+    // Do other stuff with car.
+    p->drive(); // Drive the car.
+    delete p; // Delete the car from memory when done.
+    return 0;
+}
+```
 
 We have a pointer that points at our car object. You generally use pointers whenever a language like JavaScript would've passed something by reference. Then after you do everything you need to do with the car variable you delete the car from memory. A rule of thumb for the older method of using pointers like this is you need one delete for every new.
 
 Fortunately there is a better way of working today. Smart pointers! Smart pointers are a class that wraps around a pointer and manages the memory for you. You can think of them as a pointer that has a destructor. When the smart pointer goes out of scope it will automatically delete the pointer for you. This is a much safer way of working with pointers. Lets see how this looks in C++.
 
-`#include int main() { std::shared_ptr p = std::make_shared(); // Create a new car object. // Do other stuff with car. p->drive(); // Drive the car. return 0; }`
+```cplusplus
+#include
+int main() {
+    std::shared_ptr p = std::make_shared();
+    // Create a new car object.
+    // Do other stuff with car.
+    p->drive(); // Drive the car.
+    return 0;
+}
+```
 
 In the above example we create the same object, but the memory is cleaned up automatically. The way shared\_ptr works is it has an internal counter which keeps track of how many scopes it exist in. Once the counter reaches 0 it runs delete. Note that it does require an unconventional way of creating a car. Instead of calling the constructor you have to call the make\_shared method instead. In order to use shared\_ptr you also need to import the memory standard library.
 
@@ -26,21 +43,30 @@ In the same vein of equivalent tooling C++ sort of has an equivalent build syste
 ### Lambda Functions
 
 JavaScript is powerful because of the language's ability to be written functionally, or in an object oriented fashion. Being able to pass a function directly in as an argument to a function is very powerful. And this is something C++ can do now. C++ lambda functions were added in C++11. They are a great way to write functions inline. Lets see an example of how this works.
-
-`#include namespace Test { auto assert = [](string a, string b) { return a == b; }; }`
+```cplusplus
+#include
+namespace Test {
+    auto assert = [](string a, string b) { return a == b; };
+}
+```
 
 In this example we're creating a function assert that is of the type \`function\`. This takes in two string and returns true if the strings are equal to one another. The array symbols before the parens is sort of like a dependency array in React. Anything you want from the outside scope of the function to affect the internals of the function can be passed into that array, and the values can then be accessed inside of the function. You can also pass \`\[=\]\` instead and everything in the outerscope will be included. Note in order to mutate any of the parameters being passed into the lambda you also need to pass \`mutate\` after the parens.
 
 ### Futures - Promises of C++
 
 C++ Also has something called futures which is relatively equivalent to how promises works. It allows you to start a function execution running and continue running other code until you need the value. This is what makes JavaScript so fast. In addition it is a simple way of allowing multithreading in C++ and JavaScript. Here is what Futures look like in C++.
+```cplusplus
+#include
 
-`#include int main() { std::future f = std::async([]() { return 1 + 1; }); std::cout << f.get() << std::endl; return 0; }`
+int main() {
+    std::future f = std::async([]() { return 1 + 1; });
+    std::cout << f.get() << std::endl;
+    return 0;
+}
+```
 
 In this example you can see that our function f doesn't return a value, but rather a future. This is because the function is running in a separate thread. The get method is what blocks the thread until the value is returned. This is a very powerful way of writing asynchronous code in C++.
 
   
 
 I hope this helps some other JavaScript developers get their feet wet a bit easier in C++ without having to do as much reading as I did to find similar features in the language. I'm sure there are many more features that I missed, but I hope this helps you get started.
-
-code { width: 100%; display:block; white-space: pre-wrap; background-color: black; color: white; padding: 10px; }
