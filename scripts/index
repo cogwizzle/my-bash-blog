@@ -7,7 +7,7 @@ echo "Generating HTML files."
 # Get all posts from database
 result=$(sqlite3 --init /dev/null blog.db <<ESQL
 .mode json
-SELECT id, title, content, published FROM blog;
+SELECT id, title, content, published FROM blog order by id desc;
 ESQL
 )
 # Loop through all post
