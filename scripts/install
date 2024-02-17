@@ -1,6 +1,7 @@
 #!/bin/bash
 
 echo "Install dependencies."
+npm i
 brew install gawk
 brew install htmlq
 brew install jq
