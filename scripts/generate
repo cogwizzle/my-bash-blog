@@ -28,14 +28,13 @@ if [ "$PUBLISHED" -eq 1 ]; then
 fi
 # First column.
 TITLE=$(echo "$RESULT" | jq -r '.[0].title')
-echo "TITLE: $TITLE"
 # Second column.
-CONTENT=$(echo "$RESULT" | jq -r '.[0].content' | tr '\n' ' ')
-echo "CONTENT: $CONTENT"
+CONTENT=$(echo "$RESULT" | jq -r '.[0].content')
 # Transform markdown to html and store in make variable.
 sed "s#{{title}}#$TITLE#g" layouts/blog.layout.html > "docs/$TITLE.html"
 sed -i '' "s#{{siteName}}#$SITE_NAME#g" "docs/$TITLE.html"
-sed -i '' "s#{{content}}#$CONTENT#g" "docs/$TITLE.html"
+gawk -v content="$CONTENT" '/{{content}}/{ $0 = content } 1' "docs/$TITLE.html" > "docs/$TITLE.tmp"
+mv "docs/$TITLE.tmp" "docs/$TITLE.html"
 echo "Generating HTML files done."
 echo "Updating record in database."
 sqlite3 blog.db "UPDATE blog SET published = 1 WHERE id = $ID;"
