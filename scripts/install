@@ -1,6 +1,7 @@
 #!/bin/bash
 
 echo "Install dependencies."
+brew install gawk
 brew install htmlq
 brew install jq
 brew install pandoc

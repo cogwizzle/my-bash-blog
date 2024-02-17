@@ -36,8 +36,8 @@ for encoded in $(echo "$result" | jq -r '.[] | @base64'); do
 EOF
 )
 done
-articles=$(echo "$articles" | tr '\n' ' ')
 sed "s#{{siteName}}#$SITE_NAME#g" layouts/blog.layout.html > docs/index.html
 sed -i '' "s#{{title}}#Home#g" docs/index.html
-sed -i '' "s#{{content}}#$articles#g" docs/index.html
+gawk -v content="$articles" '/{{content}}/{ $0 = content } 1' docs/index.html > docs/index.tmp
+mv docs/index.tmp docs/index.html
 echo "Generating HTML files done."
