@@ -3,10 +3,13 @@
 set -e
 
 # Handle flags
-while getopts "f:" opt; do
+while getopts "f:i:" opt; do
     case $opt in
         f)
             file=$OPTARG
+            ;;
+        i)
+            ID=$OPTARG
             ;;
         \?)
             echo "Invalid option: -$OPTARG" >&2
@@ -22,5 +25,10 @@ DATE=$(date +%Y-%m-%d\ %H:%M:%S)
 CONTENT=$(pandoc -f markdown -t html "$file")
 TITLE=$(basename "$file" .md | tr '-' ' ')
 # Write to database
+if [ -n "$ID" ]; then
+    sqlite3 blog.db "UPDATE blog SET title = '$TITLE', content = '$CONTENT', date = '$DATE' WHERE id = $ID;"
+    echo "Updating file in database done."
+    exit 0
+fi
 sqlite3 blog.db "INSERT INTO blog (title, content, date, published) VALUES ('$TITLE', '$CONTENT', '$DATE', 0);"
 echo "Writing file to database done."

@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Cogwizzle - Blog</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link
+      rel="stylesheet"
+      href="styles/styles.min.css"
+    />
+</head>
+<body>
+    <nav class="container">
+        <ul>
+            <li>
+                <h1>Cogwizzle</h1>
+            </li>
+        </ul>
+        <ul>
+            <li>
+                <a href="/">Blog</a>
+            </li>
+        </ul>
+    </nav>
+    <main class="container">
+<h1 id="testing-react">Testing React</h1>
+<p>I have been developing in React for years. Since the transition to
+hooks I’ve noticed that React has gotten… messy. I am sure if you have
+been working with React for any amount of time you have seen this too.
+Functional components that are 1000 lines long. Test that are 99% mocks
+and windy logic that is impossible to follow. So what is a developer to
+do in this situation?</p>
+<p>All of these problems are related. Your components are too big. Your
+tests are too complex. I intend to address that problem in this
+post.</p>
+<h2 id="example">Example</h2>
+<p>Let’s start with a simple example. Form components are great for this
+conversation. They are simple, but the React code required to wire one
+up is complex.</p>
+<p>Here we have a relatively simple form that depends on an imaginary
+external data source. You can look at this and think, hey this isn’t so
+bad but there is a lot of hidden complexity here.</p>
+<p>my-form-component.js</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode jsx"><code class="sourceCode javascriptreact"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> React<span class="op">,</span> { useState<span class="op">,</span> useEffect } <span class="im">from</span> <span class="st">&#39;react&#39;</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> { gql<span class="op">,</span> useQuery } <span class="im">from</span> <span class="st">&#39;@apollo/client&#39;</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> { toast } <span class="im">from</span> <span class="st">&#39;react-toastify&#39;</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> GetCountries <span class="op">=</span> <span class="fu">gql</span><span class="vs">`</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="vs">    query GetCountries {</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="vs">        countries {</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="vs">            id</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="vs">            name</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="vs">        }</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="vs">    }</span></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a><span class="vs">`</span></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> MyForm <span class="op">=</span> (props) <span class="kw">=&gt;</span> {</span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>    <span class="kw">const</span> [name<span class="op">,</span> setName] <span class="op">=</span> <span class="fu">useState</span>(<span class="st">&#39;&#39;</span>)</span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>    <span class="kw">const</span> [phone<span class="op">,</span> setPhone] <span class="op">=</span> <span class="fu">useState</span>(<span class="st">&#39;&#39;</span>)</span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>    <span class="kw">const</span> [email<span class="op">,</span> setEmail] <span class="op">=</span> <span class="fu">useState</span>(<span class="st">&#39;&#39;</span>)</span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>    <span class="kw">const</span> [country<span class="op">,</span> setCountry] <span class="op">=</span> <span class="fu">useState</span>(<span class="st">&#39;&#39;</span>)</span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>    <span class="kw">const</span> { data<span class="op">,</span> loading<span class="op">,</span> error } <span class="op">=</span> <span class="fu">useQuery</span>(GetCountries)</span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>    <span class="kw">const</span> countries <span class="op">=</span> data<span class="op">?.</span><span class="at">countries</span> <span class="op">||</span> []</span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a>    <span class="kw">const</span> onSubmit <span class="op">=</span> (e) <span class="kw">=&gt;</span> {</span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a>        e<span class="op">.</span><span class="fu">preventDefault</span>()</span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a>        props<span class="op">.</span><span class="fu">onSubmit</span>({name<span class="op">,</span> phone<span class="op">,</span> email})</span>
+<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a>    <span class="fu">useEffect</span>(() <span class="kw">=&gt;</span> {</span>
+<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> (error) {</span>
+<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a>            toast<span class="op">.</span><span class="fu">error</span>(error)</span>
+<span id="cb1-28"><a href="#cb1-28" aria-hidden="true" tabindex="-1"></a>        }</span>
+<span id="cb1-29"><a href="#cb1-29" aria-hidden="true" tabindex="-1"></a>    }<span class="op">,</span> [error])</span>
+<span id="cb1-30"><a href="#cb1-30" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb1-31"><a href="#cb1-31" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> (</span>
+<span id="cb1-32"><a href="#cb1-32" aria-hidden="true" tabindex="-1"></a>        <span class="kw">&lt;form</span> <span class="ot">onSubmit</span><span class="op">=</span><span class="va">{</span>onSubmit<span class="va">}</span><span class="kw">&gt;</span></span>
+<span id="cb1-33"><a href="#cb1-33" aria-hidden="true" tabindex="-1"></a>            <span class="kw">&lt;label</span> <span class="ot">htmlFor</span><span class="op">=</span><span class="st">&quot;name&quot;</span><span class="kw">&gt;</span>Name<span class="kw">&lt;/label&gt;</span></span>
+<span id="cb1-34"><a href="#cb1-34" aria-hidden="true" tabindex="-1"></a>            <span class="kw">&lt;input</span> <span class="ot">type</span><span class="op">=</span><span class="st">&quot;text&quot;</span> <span class="ot">id</span><span class="op">=</span><span class="st">&quot;name&quot;</span> <span class="ot">value</span><span class="op">=</span><span class="va">{</span>name<span class="va">}</span> <span class="ot">onChange</span><span class="op">=</span><span class="va">{</span>e <span class="kw">=&gt;</span> <span class="fu">setName</span>(e<span class="op">.</span><span class="at">target</span><span class="op">.</span><span class="at">value</span>)<span class="va">}</span> <span class="kw">/&gt;</span></span>
+<span id="cb1-35"><a href="#cb1-35" aria-hidden="true" tabindex="-1"></a>            <span class="kw">&lt;label</span> <span class="ot">htmlFor</span><span class="op">=</span><span class="st">&quot;phone&quot;</span><span class="kw">&gt;</span>Phone<span class="kw">&lt;/label&gt;</span></span>
+<span id="cb1-36"><a href="#cb1-36" aria-hidden="true" tabindex="-1"></a>            <span class="kw">&lt;input</span> <span class="ot">type</span><span class="op">=</span><span class="st">&quot;text&quot;</span> <span class="ot">id</span><span class="op">=</span><span class="st">&quot;phone&quot;</span> <span class="ot">value</span><span class="op">=</span><span class="va">{</span>phone<span class="va">}</span> <span class="ot">onChange</span><span class="op">=</span><span class="va">{</span>e <span class="kw">=&gt;</span> <span class="fu">setPhone</span>(e<span class="op">.</span><span class="at">target</span><span class="op">.</span><span class="at">value</span>)<span class="va">}</span> <span class="kw">/&gt;</span></span>
+<span id="cb1-37"><a href="#cb1-37" aria-hidden="true" tabindex="-1"></a>            <span class="kw">&lt;label</span> <span class="ot">htmlFor</span><span class="op">=</span><span class="st">&quot;email&quot;</span><span class="kw">&gt;</span>Email<span class="kw">&lt;/label&gt;</span></span>
+<span id="cb1-38"><a href="#cb1-38" aria-hidden="true" tabindex="-1"></a>            <span class="kw">&lt;input</span> <span class="ot">type</span><span class="op">=</span><span class="st">&quot;text&quot;</span> <span class="ot">id</span><span class="op">=</span><span class="st">&quot;email&quot;</span> <span class="ot">value</span><span class="op">=</span><span class="va">{</span>email<span class="va">}</span> <span class="ot">onChange</span><span class="op">=</span><span class="va">{</span>e <span class="kw">=&gt;</span> <span class="fu">setEmail</span>(e<span class="op">.</span><span class="at">target</span><span class="op">.</span><span class="at">value</span>)<span class="va">}</span> <span class="kw">/&gt;</span></span>
+<span id="cb1-39"><a href="#cb1-39" aria-hidden="true" tabindex="-1"></a>            <span class="kw">&lt;label</span> <span class="ot">htmlFor</span><span class="op">=</span><span class="st">&quot;country&quot;</span><span class="kw">&gt;</span>Country<span class="kw">&lt;/label&gt;</span></span>
+<span id="cb1-40"><a href="#cb1-40" aria-hidden="true" tabindex="-1"></a>            <span class="va">{</span>loading</span>
+<span id="cb1-41"><a href="#cb1-41" aria-hidden="true" tabindex="-1"></a>                <span class="op">?</span> <span class="kw">null</span></span>
+<span id="cb1-42"><a href="#cb1-42" aria-hidden="true" tabindex="-1"></a>                <span class="op">:</span> (</span>
+<span id="cb1-43"><a href="#cb1-43" aria-hidden="true" tabindex="-1"></a>                    <span class="kw">&lt;select</span> <span class="ot">id</span><span class="op">=</span><span class="st">&quot;country&quot;</span> <span class="ot">onChange</span><span class="op">=</span><span class="va">{</span>e <span class="kw">=&gt;</span> <span class="fu">setCountry</span>(e<span class="op">.</span><span class="at">target</span><span class="op">.</span><span class="at">value</span>)<span class="va">}</span><span class="kw">&gt;</span></span>
+<span id="cb1-44"><a href="#cb1-44" aria-hidden="true" tabindex="-1"></a>                        <span class="va">{</span>countries<span class="op">.</span><span class="fu">map</span>(country <span class="kw">=&gt; &lt;option</span> <span class="ot">key</span><span class="op">=</span><span class="va">{</span>country<span class="op">.</span><span class="at">id</span><span class="va">}</span> <span class="ot">value</span><span class="op">=</span><span class="va">{</span>country<span class="op">.</span><span class="at">id</span><span class="va">}</span><span class="kw">&gt;</span><span class="va">{</span>country<span class="op">.</span><span class="at">name</span><span class="va">}</span><span class="kw">&lt;/option&gt;</span>)<span class="va">}</span></span>
+<span id="cb1-45"><a href="#cb1-45" aria-hidden="true" tabindex="-1"></a>                    <span class="kw">&lt;/select&gt;</span></span>
+<span id="cb1-46"><a href="#cb1-46" aria-hidden="true" tabindex="-1"></a>                )</span>
+<span id="cb1-47"><a href="#cb1-47" aria-hidden="true" tabindex="-1"></a>            <span class="va">}</span></span>
+<span id="cb1-48"><a href="#cb1-48" aria-hidden="true" tabindex="-1"></a>            <span class="kw">&lt;submit&gt;</span>Submit<span class="kw">&lt;/submit&gt;</span> </span>
+<span id="cb1-49"><a href="#cb1-49" aria-hidden="true" tabindex="-1"></a>        <span class="kw">&lt;/form&gt;</span></span>
+<span id="cb1-50"><a href="#cb1-50" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb1-51"><a href="#cb1-51" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+<p>For starters, there is a query that is being made to an external data
+source. This would become hard to write a test for. Additionally, there
+is a component that conditionally renders based on the loading state.
+There is also an effect hook that only is triggered when an Apollo error
+exists. This component is small too. This is not the 1000-line
+monolithic component, but there is a lot of complexity.</p>
+<p>So to keep things simple let’s break this component down into smaller
+pieces. Then we’ll write the test easily.</p>
+<h2 id="breaking-it-down">Breaking it down</h2>
+<p>The first thing we can do is break the business logic out of the
+component. We can do this by building a custom hook specific to contain
+this logic.</p>
+<p>use-my-form-component.js</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode jsx"><code class="sourceCode javascriptreact"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> { useState<span class="op">,</span> useEffect } <span class="im">from</span> <span class="st">&#39;react&#39;</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> { gql<span class="op">,</span> useQuery } <span class="im">from</span> <span class="st">&#39;@apollo/client&#39;</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> { toast } <span class="im">from</span> <span class="st">&#39;react-toastify&#39;</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> GetCountries <span class="op">=</span> <span class="fu">gql</span><span class="vs">`</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="vs">    query GetCountries {</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="vs">        countries {</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="vs">            id</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a><span class="vs">            name</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a><span class="vs">        }</span></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a><span class="vs">    }</span></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a><span class="vs">`</span></span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a><span class="im">export</span> <span class="im">default</span> <span class="kw">function</span> <span class="fu">useMyFormComponent</span>({ onSubmit }) {</span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>    <span class="kw">const</span> [name<span class="op">,</span> setName] <span class="op">=</span> <span class="fu">useState</span>(<span class="st">&#39;&#39;</span>)</span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>    <span class="kw">const</span> [phone<span class="op">,</span> setPhone] <span class="op">=</span> <span class="fu">useState</span>(<span class="st">&#39;&#39;</span>)</span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>    <span class="kw">const</span> [email<span class="op">,</span> setEmail] <span class="op">=</span> <span class="fu">useState</span>(<span class="st">&#39;&#39;</span>)</span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>    <span class="kw">const</span> { data<span class="op">,</span> loading<span class="op">,</span> error } <span class="op">=</span> <span class="fu">useQuery</span>(GetCountries)</span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a>    <span class="kw">const</span> countries <span class="op">=</span> data<span class="op">?.</span><span class="at">countries</span> <span class="op">||</span> []</span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a>    <span class="kw">const</span> onSubmit <span class="op">=</span> (e) <span class="kw">=&gt;</span> {</span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a>        e<span class="op">.</span><span class="fu">preventDefault</span>()</span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a>        props<span class="op">.</span><span class="fu">onSubmit</span>({name<span class="op">,</span> phone<span class="op">,</span> email})</span>
+<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a>    <span class="kw">const</span> onNameChange <span class="op">=</span> (e) <span class="kw">=&gt;</span> {</span>
+<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a>        <span class="fu">setName</span>(e<span class="op">.</span><span class="at">target</span><span class="op">.</span><span class="at">value</span>)</span>
+<span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a>    <span class="kw">const</span> onPhoneChange <span class="op">=</span> (e) <span class="kw">=&gt;</span> {</span>
+<span id="cb2-28"><a href="#cb2-28" aria-hidden="true" tabindex="-1"></a>        <span class="fu">setPhone</span>(e<span class="op">.</span><span class="at">target</span><span class="op">.</span><span class="at">value</span>)</span>
+<span id="cb2-29"><a href="#cb2-29" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb2-30"><a href="#cb2-30" aria-hidden="true" tabindex="-1"></a>    <span class="kw">const</span> onEmailChange <span class="op">=</span> (e) <span class="kw">=&gt;</span> {</span>
+<span id="cb2-31"><a href="#cb2-31" aria-hidden="true" tabindex="-1"></a>        <span class="fu">setEmail</span>(e<span class="op">.</span><span class="at">target</span><span class="op">.</span><span class="at">value</span>)</span>
+<span id="cb2-32"><a href="#cb2-32" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb2-33"><a href="#cb2-33" aria-hidden="true" tabindex="-1"></a>    <span class="fu">useEffect</span>(() <span class="kw">=&gt;</span> {</span>
+<span id="cb2-34"><a href="#cb2-34" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> (error) {</span>
+<span id="cb2-35"><a href="#cb2-35" aria-hidden="true" tabindex="-1"></a>            toast<span class="op">.</span><span class="fu">error</span>(error)</span>
+<span id="cb2-36"><a href="#cb2-36" aria-hidden="true" tabindex="-1"></a>        }</span>
+<span id="cb2-37"><a href="#cb2-37" aria-hidden="true" tabindex="-1"></a>    }<span class="op">,</span> [error])</span>
+<span id="cb2-38"><a href="#cb2-38" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb2-39"><a href="#cb2-39" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> {</span>
+<span id="cb2-40"><a href="#cb2-40" aria-hidden="true" tabindex="-1"></a>        countries<span class="op">,</span></span>
+<span id="cb2-41"><a href="#cb2-41" aria-hidden="true" tabindex="-1"></a>        email<span class="op">,</span></span>
+<span id="cb2-42"><a href="#cb2-42" aria-hidden="true" tabindex="-1"></a>        loading<span class="op">,</span></span>
+<span id="cb2-43"><a href="#cb2-43" aria-hidden="true" tabindex="-1"></a>        name<span class="op">,</span></span>
+<span id="cb2-44"><a href="#cb2-44" aria-hidden="true" tabindex="-1"></a>        onEmailChange<span class="op">,</span></span>
+<span id="cb2-45"><a href="#cb2-45" aria-hidden="true" tabindex="-1"></a>        onNameChange<span class="op">,</span></span>
+<span id="cb2-46"><a href="#cb2-46" aria-hidden="true" tabindex="-1"></a>        onPhoneChange<span class="op">,</span></span>
+<span id="cb2-47"><a href="#cb2-47" aria-hidden="true" tabindex="-1"></a>        onSubmit</span>
+<span id="cb2-48"><a href="#cb2-48" aria-hidden="true" tabindex="-1"></a>        phone<span class="op">,</span></span>
+<span id="cb2-49"><a href="#cb2-49" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb2-50"><a href="#cb2-50" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+<p>Let’s replace the original component code with the custom hook.</p>
+<p>my-form.js</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode jsx"><code class="sourceCode javascriptreact"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> React <span class="im">from</span> <span class="st">&#39;react&#39;</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> useMyFormComponent <span class="im">from</span> <span class="st">&#39;./hooks/use-my-form-component&#39;</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> MyForm <span class="op">=</span> (props) <span class="kw">=&gt;</span> {</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>    <span class="kw">const</span> {</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>        countries<span class="op">,</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>        email<span class="op">,</span></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>        loading<span class="op">,</span></span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>        name<span class="op">,</span></span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>        onEmailChange<span class="op">,</span></span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>        onNameChange<span class="op">,</span></span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>        onPhoneChange<span class="op">,</span></span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>        onSubmit</span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>        phone<span class="op">,</span></span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>    } <span class="op">=</span> <span class="fu">useMyFormComponent</span>(props)</span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> (</span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a>        <span class="kw">&lt;form</span> <span class="ot">onSubmit</span><span class="op">=</span><span class="va">{</span>onSubmit<span class="va">}</span><span class="kw">&gt;</span></span>
+<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a>            <span class="kw">&lt;label</span> <span class="ot">htmlFor</span><span class="op">=</span><span class="st">&quot;name&quot;</span><span class="kw">&gt;</span>Name<span class="kw">&lt;/label&gt;</span></span>
+<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a>            <span class="kw">&lt;input</span> <span class="ot">type</span><span class="op">=</span><span class="st">&quot;text&quot;</span> <span class="ot">id</span><span class="op">=</span><span class="st">&quot;name&quot;</span> <span class="ot">value</span><span class="op">=</span><span class="va">{</span>name<span class="va">}</span> <span class="ot">onChange</span><span class="op">=</span><span class="va">{</span>onNameChange<span class="va">}</span> <span class="kw">/&gt;</span></span>
+<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a>            <span class="kw">&lt;label</span> <span class="ot">htmlFor</span><span class="op">=</span><span class="st">&quot;phone&quot;</span><span class="kw">&gt;</span>Phone<span class="kw">&lt;/label&gt;</span></span>
+<span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a>            <span class="kw">&lt;input</span> <span class="ot">type</span><span class="op">=</span><span class="st">&quot;text&quot;</span> <span class="ot">id</span><span class="op">=</span><span class="st">&quot;phone&quot;</span> <span class="ot">value</span><span class="op">=</span><span class="va">{</span>phone<span class="va">}</span> <span class="ot">onChange</span><span class="op">=</span><span class="va">{</span>onPhoneChange<span class="va">}</span> <span class="kw">/&gt;</span></span>
+<span id="cb3-24"><a href="#cb3-24" aria-hidden="true" tabindex="-1"></a>            <span class="kw">&lt;label</span> <span class="ot">htmlFor</span><span class="op">=</span><span class="st">&quot;email&quot;</span><span class="kw">&gt;</span>Email<span class="kw">&lt;/label&gt;</span></span>
+<span id="cb3-25"><a href="#cb3-25" aria-hidden="true" tabindex="-1"></a>            <span class="kw">&lt;input</span> <span class="ot">type</span><span class="op">=</span><span class="st">&quot;text&quot;</span> <span class="ot">id</span><span class="op">=</span><span class="st">&quot;email&quot;</span> <span class="ot">value</span><span class="op">=</span><span class="va">{</span>email<span class="va">}</span> <span class="ot">onChange</span><span class="op">=</span><span class="va">{</span>onEmailChange<span class="va">}</span> <span class="kw">/&gt;</span></span>
+<span id="cb3-26"><a href="#cb3-26" aria-hidden="true" tabindex="-1"></a>            <span class="kw">&lt;label</span> <span class="ot">htmlFor</span><span class="op">=</span><span class="st">&quot;country&quot;</span><span class="kw">&gt;</span>Country<span class="kw">&lt;/label&gt;</span></span>
+<span id="cb3-27"><a href="#cb3-27" aria-hidden="true" tabindex="-1"></a>            <span class="va">{</span>loading</span>
+<span id="cb3-28"><a href="#cb3-28" aria-hidden="true" tabindex="-1"></a>                <span class="op">?</span> <span class="kw">null</span></span>
+<span id="cb3-29"><a href="#cb3-29" aria-hidden="true" tabindex="-1"></a>                <span class="op">:</span> (</span>
+<span id="cb3-30"><a href="#cb3-30" aria-hidden="true" tabindex="-1"></a>                    <span class="kw">&lt;select</span> <span class="ot">id</span><span class="op">=</span><span class="st">&quot;country&quot;</span> <span class="ot">onChange</span><span class="op">=</span><span class="va">{</span>onCountryChange<span class="va">}</span><span class="kw">&gt;</span></span>
+<span id="cb3-31"><a href="#cb3-31" aria-hidden="true" tabindex="-1"></a>                        <span class="va">{</span>countries<span class="op">.</span><span class="fu">map</span>(country <span class="kw">=&gt; &lt;option</span> <span class="ot">key</span><span class="op">=</span><span class="va">{</span>country<span class="op">.</span><span class="at">id</span><span class="va">}</span> <span class="ot">value</span><span class="op">=</span><span class="va">{</span>country<span class="op">.</span><span class="at">id</span><span class="va">}</span><span class="kw">&gt;</span><span class="va">{</span>country<span class="op">.</span><span class="at">name</span><span class="va">}</span><span class="kw">&lt;/option&gt;</span>)<span class="va">}</span></span>
+<span id="cb3-32"><a href="#cb3-32" aria-hidden="true" tabindex="-1"></a>                    <span class="kw">&lt;/select&gt;</span></span>
+<span id="cb3-33"><a href="#cb3-33" aria-hidden="true" tabindex="-1"></a>                )</span>
+<span id="cb3-34"><a href="#cb3-34" aria-hidden="true" tabindex="-1"></a>            <span class="va">}</span></span>
+<span id="cb3-35"><a href="#cb3-35" aria-hidden="true" tabindex="-1"></a>            <span class="kw">&lt;submit&gt;</span>Submit<span class="kw">&lt;/submit&gt;</span> </span>
+<span id="cb3-36"><a href="#cb3-36" aria-hidden="true" tabindex="-1"></a>        <span class="kw">&lt;/form&gt;</span></span>
+<span id="cb3-37"><a href="#cb3-37" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb3-38"><a href="#cb3-38" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+<p>This is a good start, but we can make it better.</p>
+<h3 id="breaking-it-down-further">Breaking it down further</h3>
+<p>The next thing we can do is break another custom hook out of the
+custom hook we just wrote. You’ll notice the query hook is a good
+candidate to be broken down further.</p>
+<p>use-get-countries.js</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode jsx"><code class="sourceCode javascriptreact"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> { gql<span class="op">,</span> useQuery } <span class="im">from</span> <span class="st">&#39;@apollo/client&#39;</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> GetCountries <span class="op">=</span> <span class="fu">gql</span><span class="vs">`</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="vs">    query GetCountries {</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="vs">        countries {</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a><span class="vs">            id</span></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a><span class="vs">            name</span></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a><span class="vs">        }</span></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a><span class="vs">    }</span></span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a><span class="vs">`</span></span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a><span class="im">export</span> <span class="im">default</span> <span class="kw">function</span> <span class="fu">useGetCountries</span>() {</span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="fu">useQuery</span>(GetCountries)</span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+<p>use-my-form-component.js</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode jsx"><code class="sourceCode javascriptreact"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> { useState<span class="op">,</span> useEffect } <span class="im">from</span> <span class="st">&#39;react&#39;</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> { toast } <span class="im">from</span> <span class="st">&#39;react-toastify&#39;</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> useGetCountries <span class="im">from</span> <span class="st">&#39;./use-get-countries&#39;</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="im">export</span> <span class="im">default</span> <span class="kw">function</span> <span class="fu">useMyFormComponent</span>({ onSubmit }) {</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>    <span class="kw">const</span> [name<span class="op">,</span> setName] <span class="op">=</span> <span class="fu">useState</span>(<span class="st">&#39;&#39;</span>)</span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>    <span class="kw">const</span> [phone<span class="op">,</span> setPhone] <span class="op">=</span> <span class="fu">useState</span>(<span class="st">&#39;&#39;</span>)</span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>    <span class="kw">const</span> [email<span class="op">,</span> setEmail] <span class="op">=</span> <span class="fu">useState</span>(<span class="st">&#39;&#39;</span>)</span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>    <span class="kw">const</span> { data<span class="op">,</span> loading<span class="op">,</span> error } <span class="op">=</span> <span class="fu">useGetCountries</span>()</span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>    <span class="kw">const</span> countries <span class="op">=</span> data<span class="op">?.</span><span class="at">countries</span> <span class="op">||</span> []</span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>    <span class="kw">const</span> onSubmit <span class="op">=</span> (e) <span class="kw">=&gt;</span> {</span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>        e<span class="op">.</span><span class="fu">preventDefault</span>()</span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>        props<span class="op">.</span><span class="fu">onSubmit</span>({name<span class="op">,</span> phone<span class="op">,</span> email})</span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a>    <span class="fu">useEffect</span>(() <span class="kw">=&gt;</span> {</span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> (error) {</span>
+<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a>            toast<span class="op">.</span><span class="fu">error</span>(error)</span>
+<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a>        }</span>
+<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a>    }<span class="op">,</span> [error])</span>
+<span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb5-21"><a href="#cb5-21" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> {</span>
+<span id="cb5-22"><a href="#cb5-22" aria-hidden="true" tabindex="-1"></a>        countries<span class="op">,</span></span>
+<span id="cb5-23"><a href="#cb5-23" aria-hidden="true" tabindex="-1"></a>        email<span class="op">,</span></span>
+<span id="cb5-24"><a href="#cb5-24" aria-hidden="true" tabindex="-1"></a>        loading<span class="op">,</span></span>
+<span id="cb5-25"><a href="#cb5-25" aria-hidden="true" tabindex="-1"></a>        name<span class="op">,</span></span>
+<span id="cb5-26"><a href="#cb5-26" aria-hidden="true" tabindex="-1"></a>        onSubmit</span>
+<span id="cb5-27"><a href="#cb5-27" aria-hidden="true" tabindex="-1"></a>        phone<span class="op">,</span></span>
+<span id="cb5-28"><a href="#cb5-28" aria-hidden="true" tabindex="-1"></a>        setEmail<span class="op">,</span></span>
+<span id="cb5-29"><a href="#cb5-29" aria-hidden="true" tabindex="-1"></a>        setName<span class="op">,</span></span>
+<span id="cb5-30"><a href="#cb5-30" aria-hidden="true" tabindex="-1"></a>        setPhone<span class="op">,</span></span>
+<span id="cb5-31"><a href="#cb5-31" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb5-32"><a href="#cb5-32" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+<p>There are certainly other ways to break this down smaller too, but
+we’ll avoid that for now. This is a good start. Let’s write some
+tests.</p>
+<h2 id="testing">Testing</h2>
+<p>Let’s test the custom hooks first. Now that these are both small
+functions this should be easy.</p>
+<p>use-get-countries.test.js</p>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode jsx"><code class="sourceCode javascriptreact"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> { renderHook } <span class="im">from</span> <span class="st">&#39;@testing-library/react-hooks&#39;</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> { useQuery } <span class="im">from</span> <span class="st">&#39;@apollo/client&#39;</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> useGetCountries <span class="im">from</span> <span class="st">&#39;./use-get-countries&#39;</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>jest<span class="op">.</span><span class="fu">mock</span>(<span class="st">&#39;@apollo/client&#39;</span><span class="op">,</span> () <span class="kw">=&gt;</span> ({</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>    <span class="dt">__esModule</span><span class="op">:</span> <span class="kw">true</span><span class="op">,</span></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>    <span class="op">...</span>jest<span class="op">.</span><span class="fu">requireAction</span>(<span class="st">&#39;@apollo/client&#39;</span>)<span class="op">,</span></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>    <span class="dt">useQuery</span><span class="op">:</span> jest<span class="op">.</span><span class="fu">fn</span>()<span class="op">,</span></span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>}))</span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a><span class="fu">test</span>(<span class="st">&#39;useGetCountries should return data, loading, and error&#39;</span><span class="op">,</span> () <span class="kw">=&gt;</span> {</span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>    jest<span class="op">.</span><span class="fu">mocked</span>(useQuery)<span class="op">.</span><span class="fu">mockReturnValue</span>({</span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>        <span class="dt">data</span><span class="op">:</span> { <span class="dt">countries</span><span class="op">:</span> [{ <span class="dt">id</span><span class="op">:</span> <span class="dv">1</span><span class="op">,</span> <span class="dt">name</span><span class="op">:</span> <span class="st">&#39;USA&#39;</span> }] }<span class="op">,</span></span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a>        <span class="dt">loading</span><span class="op">:</span> <span class="kw">false</span><span class="op">,</span></span>
+<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a>        <span class="dt">error</span><span class="op">:</span> <span class="kw">null</span><span class="op">,</span></span>
+<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a>    })</span>
+<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a>    <span class="kw">const</span> { result } <span class="op">=</span> <span class="fu">renderHook</span>(() <span class="kw">=&gt;</span> <span class="fu">useGetCountries</span>())</span>
+<span id="cb6-18"><a href="#cb6-18" aria-hidden="true" tabindex="-1"></a>    <span class="fu">expect</span>(result<span class="op">.</span><span class="at">current</span><span class="op">.</span><span class="at">data</span>)<span class="op">.</span><span class="fu">toBeDefined</span>()</span>
+<span id="cb6-19"><a href="#cb6-19" aria-hidden="true" tabindex="-1"></a>    <span class="fu">expect</span>(result<span class="op">.</span><span class="at">current</span><span class="op">.</span><span class="at">loading</span>)<span class="op">.</span><span class="fu">toBeFalse</span>()</span>
+<span id="cb6-20"><a href="#cb6-20" aria-hidden="true" tabindex="-1"></a>    <span class="fu">expect</span>(result<span class="op">.</span><span class="at">current</span><span class="op">.</span><span class="at">error</span>)<span class="op">.</span><span class="fu">toBeNull</span>()</span>
+<span id="cb6-21"><a href="#cb6-21" aria-hidden="true" tabindex="-1"></a>})</span></code></pre></div>
+<p>This test is incredibly short but it ensures that our contract is
+being met. We can now build a manual mock of the useGetCountries hook so
+that we can use it elsewhere since it is being tested.</p>
+<p>__mocks__/use-get-countries.js</p>
+<div class="sourceCode" id="cb7"><pre
+class="sourceCode jsx"><code class="sourceCode javascriptreact"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="im">export</span> <span class="im">default</span> <span class="kw">function</span> <span class="fu">useGetCountries</span>() {</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> {</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>        <span class="dt">data</span><span class="op">:</span> { <span class="dt">countries</span><span class="op">:</span> [{ <span class="dt">id</span><span class="op">:</span> <span class="dv">1</span><span class="op">,</span> <span class="dt">name</span><span class="op">:</span> <span class="st">&#39;USA&#39;</span> }] }<span class="op">,</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>        <span class="dt">loading</span><span class="op">:</span> <span class="kw">false</span><span class="op">,</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>        <span class="dt">error</span><span class="op">:</span> <span class="kw">null</span><span class="op">,</span></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+<p>This manual mock allows us to mock this hook in other tests. This is
+a great way to isolate the tests.</p>
+<p>use-my-form-component.test.js</p>
+<div class="sourceCode" id="cb8"><pre
+class="sourceCode jsx"><code class="sourceCode javascriptreact"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> { renderHook } <span class="im">from</span> <span class="st">&#39;@testing-library/react-hooks&#39;</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> useMyFormComponent <span class="im">from</span> <span class="st">&#39;./use-my-form-component&#39;</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> useGetCountries <span class="im">from</span> <span class="st">&#39;./use-get-countries&#39;</span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a><span class="co">// Automatically uses the manual mock from earlier.</span></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>jest<span class="op">.</span><span class="fu">mock</span>(<span class="st">&#39;./use-get-countries&#39;</span>)</span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a><span class="fu">describe</span>(<span class="st">&#39;useMyFormComponent&#39;</span><span class="op">,</span> () <span class="kw">=&gt;</span> {</span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>    <span class="fu">test</span>(<span class="st">&#39;should return countries, email, loading, name, onSubmit, phone, setEmail, setName, and setPhone.&#39;</span><span class="op">,</span> () <span class="kw">=&gt;</span> {</span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>        <span class="kw">const</span> onSubmit <span class="op">=</span> jest<span class="op">.</span><span class="fu">fn</span>()</span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>        <span class="kw">const</span> { result } <span class="op">=</span> <span class="fu">renderHook</span>(() <span class="kw">=&gt;</span> <span class="fu">useMyFormComponent</span>({ onSubmit }))</span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>        <span class="fu">expect</span>(result<span class="op">.</span><span class="at">current</span><span class="op">.</span><span class="at">countries</span>)<span class="op">.</span><span class="fu">toBeDefined</span>()</span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a>        <span class="fu">expect</span>(result<span class="op">.</span><span class="at">current</span><span class="op">.</span><span class="at">email</span>)<span class="op">.</span><span class="fu">toBe</span>(<span class="st">&#39;&#39;</span>)</span>
+<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a>        <span class="fu">expect</span>(result<span class="op">.</span><span class="at">current</span><span class="op">.</span><span class="at">loading</span>)<span class="op">.</span><span class="fu">toBeTrue</span>()</span>
+<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a>        <span class="fu">expect</span>(result<span class="op">.</span><span class="at">current</span><span class="op">.</span><span class="at">name</span>)<span class="op">.</span><span class="fu">toBe</span>(<span class="st">&#39;&#39;</span>)</span>
+<span id="cb8-16"><a href="#cb8-16" aria-hidden="true" tabindex="-1"></a>        <span class="fu">expect</span>(result<span class="op">.</span><span class="at">current</span><span class="op">.</span><span class="at">onSubmit</span>)<span class="op">.</span><span class="fu">toBeFunction</span>()</span>
+<span id="cb8-17"><a href="#cb8-17" aria-hidden="true" tabindex="-1"></a>        <span class="fu">expect</span>(result<span class="op">.</span><span class="at">current</span><span class="op">.</span><span class="at">phone</span>)<span class="op">.</span><span class="fu">toBe</span>(<span class="st">&#39;&#39;</span>)</span>
+<span id="cb8-18"><a href="#cb8-18" aria-hidden="true" tabindex="-1"></a>        <span class="fu">expect</span>(result<span class="op">.</span><span class="at">current</span><span class="op">.</span><span class="at">setEmail</span>)<span class="op">.</span><span class="fu">toBeFunction</span>()</span>
+<span id="cb8-19"><a href="#cb8-19" aria-hidden="true" tabindex="-1"></a>        <span class="fu">expect</span>(result<span class="op">.</span><span class="at">current</span><span class="op">.</span><span class="at">setName</span>)<span class="op">.</span><span class="fu">toBeFunction</span>()</span>
+<span id="cb8-20"><a href="#cb8-20" aria-hidden="true" tabindex="-1"></a>        <span class="fu">expect</span>(result<span class="op">.</span><span class="at">current</span><span class="op">.</span><span class="at">setPhone</span>)<span class="op">.</span><span class="fu">toBeFunction</span>()</span>
+<span id="cb8-21"><a href="#cb8-21" aria-hidden="true" tabindex="-1"></a>    })</span>
+<span id="cb8-22"><a href="#cb8-22" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb8-23"><a href="#cb8-23" aria-hidden="true" tabindex="-1"></a>    <span class="fu">test</span>(<span class="st">&#39;onSubmit should call the onSubmit prop.&#39;</span><span class="op">,</span> () <span class="kw">=&gt;</span> {</span>
+<span id="cb8-24"><a href="#cb8-24" aria-hidden="true" tabindex="-1"></a>        <span class="kw">const</span> onSubmit <span class="op">=</span> jest<span class="op">.</span><span class="fu">fn</span>()</span>
+<span id="cb8-25"><a href="#cb8-25" aria-hidden="true" tabindex="-1"></a>        <span class="kw">const</span> { result } <span class="op">=</span> <span class="fu">renderHook</span>(() <span class="kw">=&gt;</span> <span class="fu">useMyFormComponent</span>({ onSubmit }))</span>
+<span id="cb8-26"><a href="#cb8-26" aria-hidden="true" tabindex="-1"></a>        result<span class="op">.</span><span class="at">current</span><span class="op">.</span><span class="fu">onSubmit</span>()</span>
+<span id="cb8-27"><a href="#cb8-27" aria-hidden="true" tabindex="-1"></a>        <span class="fu">expect</span>(onSubmit)<span class="op">.</span><span class="fu">toHaveBeenCalled</span>()</span>
+<span id="cb8-28"><a href="#cb8-28" aria-hidden="true" tabindex="-1"></a>    })</span>
+<span id="cb8-29"><a href="#cb8-29" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb8-30"><a href="#cb8-30" aria-hidden="true" tabindex="-1"></a>    <span class="fu">test</span>(<span class="st">&#39;should call toast.error when error is defined.&#39;</span><span class="op">,</span> () <span class="kw">=&gt;</span> {</span>
+<span id="cb8-31"><a href="#cb8-31" aria-hidden="true" tabindex="-1"></a>        jest<span class="op">.</span><span class="fu">mocked</span>(useGetCountries)<span class="op">.</span><span class="fu">mockReturnValue</span>({</span>
+<span id="cb8-32"><a href="#cb8-32" aria-hidden="true" tabindex="-1"></a>            <span class="dt">data</span><span class="op">:</span> <span class="kw">null</span><span class="op">,</span></span>
+<span id="cb8-33"><a href="#cb8-33" aria-hidden="true" tabindex="-1"></a>            <span class="dt">loading</span><span class="op">:</span> <span class="kw">false</span><span class="op">,</span></span>
+<span id="cb8-34"><a href="#cb8-34" aria-hidden="true" tabindex="-1"></a>            <span class="dt">error</span><span class="op">:</span> <span class="st">&#39;An error occurred.&#39;</span><span class="op">,</span></span>
+<span id="cb8-35"><a href="#cb8-35" aria-hidden="true" tabindex="-1"></a>        })</span>
+<span id="cb8-36"><a href="#cb8-36" aria-hidden="true" tabindex="-1"></a>        <span class="kw">const</span> { result } <span class="op">=</span> <span class="fu">renderHook</span>(() <span class="kw">=&gt;</span> <span class="fu">useMyFormComponent</span>({ <span class="dt">onSubmit</span><span class="op">:</span> jest<span class="op">.</span><span class="fu">fn</span>() }))</span>
+<span id="cb8-37"><a href="#cb8-37" aria-hidden="true" tabindex="-1"></a>        <span class="fu">expect</span>(toast<span class="op">.</span><span class="at">error</span>)<span class="op">.</span><span class="fu">toHaveBeenCalledWith</span>(<span class="st">&#39;An error occurred.&#39;</span>)</span>
+<span id="cb8-38"><a href="#cb8-38" aria-hidden="true" tabindex="-1"></a>    })</span>
+<span id="cb8-39"><a href="#cb8-39" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb8-40"><a href="#cb8-40" aria-hidden="true" tabindex="-1"></a>    <span class="fu">test</span>(<span class="st">&#39;should not call toast.error when error is undefined.&#39;</span><span class="op">,</span> () <span class="kw">=&gt;</span> {</span>
+<span id="cb8-41"><a href="#cb8-41" aria-hidden="true" tabindex="-1"></a>        jest<span class="op">.</span><span class="fu">mocked</span>(useGetCountries)<span class="op">.</span><span class="fu">mockReturnValue</span>({</span>
+<span id="cb8-42"><a href="#cb8-42" aria-hidden="true" tabindex="-1"></a>            <span class="dt">data</span><span class="op">:</span> <span class="kw">null</span><span class="op">,</span></span>
+<span id="cb8-43"><a href="#cb8-43" aria-hidden="true" tabindex="-1"></a>            <span class="dt">loading</span><span class="op">:</span> <span class="kw">false</span><span class="op">,</span></span>
+<span id="cb8-44"><a href="#cb8-44" aria-hidden="true" tabindex="-1"></a>            <span class="dt">error</span><span class="op">:</span> <span class="kw">null</span><span class="op">,</span></span>
+<span id="cb8-45"><a href="#cb8-45" aria-hidden="true" tabindex="-1"></a>        })</span>
+<span id="cb8-46"><a href="#cb8-46" aria-hidden="true" tabindex="-1"></a>        <span class="kw">const</span> { result } <span class="op">=</span> <span class="fu">renderHook</span>(() <span class="kw">=&gt;</span> <span class="fu">useMyFormComponent</span>({ <span class="dt">onSubmit</span><span class="op">:</span> jest<span class="op">.</span><span class="fu">fn</span>() }))</span>
+<span id="cb8-47"><a href="#cb8-47" aria-hidden="true" tabindex="-1"></a>        <span class="fu">expect</span>(toast<span class="op">.</span><span class="at">error</span>)<span class="op">.</span><span class="at">not</span><span class="op">.</span><span class="fu">toHaveBeenCalled</span>()</span>
+<span id="cb8-48"><a href="#cb8-48" aria-hidden="true" tabindex="-1"></a>    })</span>
+<span id="cb8-49"><a href="#cb8-49" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb8-50"><a href="#cb8-50" aria-hidden="true" tabindex="-1"></a>    <span class="fu">test</span>(<span class="st">&#39;should call setName when onNameChange is called.&#39;</span><span class="op">,</span> () <span class="kw">=&gt;</span> {</span>
+<span id="cb8-51"><a href="#cb8-51" aria-hidden="true" tabindex="-1"></a>        <span class="kw">const</span> { result } <span class="op">=</span> <span class="fu">renderHook</span>(() <span class="kw">=&gt;</span> <span class="fu">useMyFormComponent</span>({ <span class="dt">onSubmit</span><span class="op">:</span> jest<span class="op">.</span><span class="fu">fn</span>() }))</span>
+<span id="cb8-52"><a href="#cb8-52" aria-hidden="true" tabindex="-1"></a>        result<span class="op">.</span><span class="at">current</span><span class="op">.</span><span class="fu">onNameChange</span>({ <span class="dt">target</span><span class="op">:</span> { <span class="dt">value</span><span class="op">:</span> <span class="st">&#39;John&#39;</span> } })</span>
+<span id="cb8-53"><a href="#cb8-53" aria-hidden="true" tabindex="-1"></a>        <span class="fu">expect</span>(result<span class="op">.</span><span class="at">current</span><span class="op">.</span><span class="at">name</span>)<span class="op">.</span><span class="fu">toBe</span>(<span class="st">&#39;John&#39;</span>)</span>
+<span id="cb8-54"><a href="#cb8-54" aria-hidden="true" tabindex="-1"></a>    })</span>
+<span id="cb8-55"><a href="#cb8-55" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb8-56"><a href="#cb8-56" aria-hidden="true" tabindex="-1"></a>    <span class="fu">test</span>(<span class="st">&#39;should call setPhone when onPhoneChange is called.&#39;</span><span class="op">,</span> () <span class="kw">=&gt;</span> {</span>
+<span id="cb8-57"><a href="#cb8-57" aria-hidden="true" tabindex="-1"></a>        <span class="kw">const</span> { result } <span class="op">=</span> <span class="fu">renderHook</span>(() <span class="kw">=&gt;</span> <span class="fu">useMyFormComponent</span>({ <span class="dt">onSubmit</span><span class="op">:</span> jest<span class="op">.</span><span class="fu">fn</span>() }))</span>
+<span id="cb8-58"><a href="#cb8-58" aria-hidden="true" tabindex="-1"></a>        result<span class="op">.</span><span class="at">current</span><span class="op">.</span><span class="fu">onPhoneChange</span>({ <span class="dt">target</span><span class="op">:</span> { <span class="dt">value</span><span class="op">:</span> <span class="st">&#39;555-5555&#39;</span> } })</span>
+<span id="cb8-59"><a href="#cb8-59" aria-hidden="true" tabindex="-1"></a>        <span class="fu">expect</span>(result<span class="op">.</span><span class="at">current</span><span class="op">.</span><span class="at">phone</span>)<span class="op">.</span><span class="fu">toBe</span>(<span class="st">&#39;555-5555&#39;</span>)</span>
+<span id="cb8-60"><a href="#cb8-60" aria-hidden="true" tabindex="-1"></a>    })</span>
+<span id="cb8-61"><a href="#cb8-61" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb8-62"><a href="#cb8-62" aria-hidden="true" tabindex="-1"></a>    <span class="fu">test</span>(<span class="st">&#39;should call setEmail when onEmailChange is called.&#39;</span><span class="op">,</span> () <span class="kw">=&gt;</span> {</span>
+<span id="cb8-63"><a href="#cb8-63" aria-hidden="true" tabindex="-1"></a>        <span class="kw">const</span> { result } <span class="op">=</span> <span class="fu">renderHook</span>(() <span class="kw">=&gt;</span> <span class="fu">useMyFormComponent</span>({ <span class="dt">onSubmit</span><span class="op">:</span> jest<span class="op">.</span><span class="fu">fn</span>() }))</span>
+<span id="cb8-64"><a href="#cb8-64" aria-hidden="true" tabindex="-1"></a>        result<span class="op">.</span><span class="at">current</span><span class="op">.</span><span class="fu">onEmailChange</span>({ <span class="dt">target</span><span class="op">:</span> { <span class="dt">value</span><span class="op">:</span> <span class="st">&#39;test@email.com&#39;</span> } })</span>
+<span id="cb8-65"><a href="#cb8-65" aria-hidden="true" tabindex="-1"></a>        <span class="fu">expect</span>(result<span class="op">.</span><span class="at">current</span><span class="op">.</span><span class="at">email</span>)<span class="op">.</span><span class="fu">toBe</span>(<span class="st">&#39;test@email.com&#39;</span>)</span>
+<span id="cb8-66"><a href="#cb8-66" aria-hidden="true" tabindex="-1"></a>    })</span>
+<span id="cb8-67"><a href="#cb8-67" aria-hidden="true" tabindex="-1"></a>})</span></code></pre></div>
+<p>__mocks__/use-my-form-component.js</p>
+<div class="sourceCode" id="cb9"><pre
+class="sourceCode jsx"><code class="sourceCode javascriptreact"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="im">export</span> <span class="im">default</span> <span class="kw">function</span> <span class="fu">useMyFormComponent</span>({ onSubmit }) {</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> {</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>        <span class="dt">countries</span><span class="op">:</span> []<span class="op">,</span></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>        <span class="dt">email</span><span class="op">:</span> <span class="st">&#39;&#39;</span><span class="op">,</span></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>        <span class="dt">loading</span><span class="op">:</span> <span class="kw">false</span><span class="op">,</span></span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>        <span class="dt">name</span><span class="op">:</span> <span class="st">&#39;&#39;</span><span class="op">,</span></span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>        <span class="dt">onEmailChange</span><span class="op">:</span> jest<span class="op">.</span><span class="fu">fn</span>()<span class="op">,</span></span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>        <span class="dt">onNameChange</span><span class="op">:</span> jest<span class="op">.</span><span class="fu">fn</span>()<span class="op">,</span></span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>        <span class="dt">onPhoneChange</span><span class="op">:</span> jest<span class="op">.</span><span class="fu">fn</span>()<span class="op">,</span></span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>        onSubmit<span class="op">,</span></span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>        <span class="dt">phone</span><span class="op">:</span> <span class="st">&#39;&#39;</span><span class="op">,</span></span>
+<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a>    }</span></code></pre></div>
+<p>Great now we have the custom hooks tested. We can now test the
+component.</p>
+<p>my-form.test.js</p>
+<div class="sourceCode" id="cb10"><pre
+class="sourceCode jsx"><code class="sourceCode javascriptreact"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> React <span class="im">from</span> <span class="st">&#39;react&#39;</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> { render<span class="op">,</span> <span class="bu">screen</span> } <span class="im">from</span> <span class="st">&#39;@testing-library/react&#39;</span></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> MyForm <span class="im">from</span> <span class="st">&#39;./my-form&#39;</span></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>jest<span class="op">.</span><span class="fu">mock</span>(<span class="st">&#39;./hooks/use-my-form-component&#39;</span>)</span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> onSubmit <span class="op">=</span> jest<span class="op">.</span><span class="fu">fn</span>()</span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a><span class="fu">test</span>(<span class="st">&#39;should render the form.&#39;</span><span class="op">,</span> () <span class="kw">=&gt;</span> {</span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>    <span class="fu">render</span>(<span class="fu">&lt;MyForm</span> <span class="ot">onSubmit</span><span class="op">=</span><span class="va">{</span>onSubmit<span class="va">}</span> <span class="fu">/&gt;</span>)</span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a>    <span class="fu">expect</span>(<span class="bu">screen</span><span class="op">.</span><span class="fu">getByLabelText</span>(<span class="st">&#39;Name&#39;</span>))<span class="op">.</span><span class="fu">toBeInTheDocument</span>()</span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a>    <span class="fu">expect</span>(<span class="bu">screen</span><span class="op">.</span><span class="fu">getByLabelText</span>(<span class="st">&#39;Phone&#39;</span>))<span class="op">.</span><span class="fu">toBeInTheDocument</span>()</span>
+<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a>    <span class="fu">expect</span>(<span class="bu">screen</span><span class="op">.</span><span class="fu">getByLabelText</span>(<span class="st">&#39;Email&#39;</span>))<span class="op">.</span><span class="fu">toBeInTheDocument</span>()</span>
+<span id="cb10-13"><a href="#cb10-13" aria-hidden="true" tabindex="-1"></a>    <span class="fu">expect</span>(<span class="bu">screen</span><span class="op">.</span><span class="fu">getByLabelText</span>(<span class="st">&#39;Country&#39;</span>))<span class="op">.</span><span class="fu">toBeInTheDocument</span>()</span>
+<span id="cb10-14"><a href="#cb10-14" aria-hidden="true" tabindex="-1"></a>    <span class="fu">expect</span>(<span class="bu">screen</span><span class="op">.</span><span class="fu">getByText</span>(<span class="st">&#39;Submit&#39;</span>))<span class="op">.</span><span class="fu">toBeInTheDocument</span>()</span>
+<span id="cb10-15"><a href="#cb10-15" aria-hidden="true" tabindex="-1"></a>})</span>
+<span id="cb10-16"><a href="#cb10-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-17"><a href="#cb10-17" aria-hidden="true" tabindex="-1"></a><span class="fu">test</span>(<span class="st">&#39;should not show Country if loading is true.&#39;</span><span class="op">,</span> () <span class="kw">=&gt;</span> {</span>
+<span id="cb10-18"><a href="#cb10-18" aria-hidden="true" tabindex="-1"></a>    jest<span class="op">.</span><span class="fu">mocked</span>(useMyFormComponent)<span class="op">.</span><span class="fu">mockReturnValue</span>({</span>
+<span id="cb10-19"><a href="#cb10-19" aria-hidden="true" tabindex="-1"></a>        <span class="dt">countries</span><span class="op">:</span> []<span class="op">,</span></span>
+<span id="cb10-20"><a href="#cb10-20" aria-hidden="true" tabindex="-1"></a>        <span class="dt">email</span><span class="op">:</span> <span class="st">&#39;&#39;</span><span class="op">,</span></span>
+<span id="cb10-21"><a href="#cb10-21" aria-hidden="true" tabindex="-1"></a>        <span class="dt">loading</span><span class="op">:</span> <span class="kw">true</span><span class="op">,</span></span>
+<span id="cb10-22"><a href="#cb10-22" aria-hidden="true" tabindex="-1"></a>        <span class="dt">name</span><span class="op">:</span> <span class="st">&#39;&#39;</span><span class="op">,</span></span>
+<span id="cb10-23"><a href="#cb10-23" aria-hidden="true" tabindex="-1"></a>        <span class="dt">onEmailChange</span><span class="op">:</span> jest<span class="op">.</span><span class="fu">fn</span>()<span class="op">,</span></span>
+<span id="cb10-24"><a href="#cb10-24" aria-hidden="true" tabindex="-1"></a>        <span class="dt">onNameChange</span><span class="op">:</span> jest<span class="op">.</span><span class="fu">fn</span>()<span class="op">,</span></span>
+<span id="cb10-25"><a href="#cb10-25" aria-hidden="true" tabindex="-1"></a>        <span class="dt">onPhoneChange</span><span class="op">:</span> jest<span class="op">.</span><span class="fu">fn</span>()<span class="op">,</span></span>
+<span id="cb10-26"><a href="#cb10-26" aria-hidden="true" tabindex="-1"></a>        <span class="dt">onSubmit</span><span class="op">:</span> jest<span class="op">.</span><span class="fu">fn</span>()<span class="op">,</span></span>
+<span id="cb10-27"><a href="#cb10-27" aria-hidden="true" tabindex="-1"></a>        <span class="dt">phone</span><span class="op">:</span> <span class="st">&#39;&#39;</span><span class="op">,</span></span>
+<span id="cb10-28"><a href="#cb10-28" aria-hidden="true" tabindex="-1"></a>    })</span>
+<span id="cb10-29"><a href="#cb10-29" aria-hidden="true" tabindex="-1"></a>    <span class="fu">render</span>(<span class="fu">&lt;MyForm</span> <span class="ot">onSubmit</span><span class="op">=</span><span class="va">{</span>onSubmit<span class="va">}</span> <span class="fu">/&gt;</span>)</span>
+<span id="cb10-30"><a href="#cb10-30" aria-hidden="true" tabindex="-1"></a>    <span class="fu">expect</span>(<span class="bu">screen</span><span class="op">.</span><span class="fu">queryByLabelText</span>(<span class="st">&#39;Country&#39;</span>))<span class="op">.</span><span class="at">not</span><span class="op">.</span><span class="fu">toBeInTheDocument</span>()</span>
+<span id="cb10-31"><a href="#cb10-31" aria-hidden="true" tabindex="-1"></a>})</span></code></pre></div>
+<p>This is a great start. We now have a component that is easy to test
+because the business logic is separate.</p>
+<p>One quick note here is my opinion differs from the broader React
+community in one way. I don’t believe that you need to directly modify
+the rendered DOM by modifying fields or clicking buttons. We’ve already
+tested that as part of the hook test. If inputs and buttons don’t work
+in React we have much bigger problems. In my opinion, those tests are
+much better to test in an end-to-end test.</p>
+<h2 id="conclusion">Conclusion</h2>
+<p>If you break the pieces of your React components into smaller pieces
+you will have a much easier time maintaining them and writing tests for
+them. In addition, these tests are easy to maintain should something
+need to change and you don’t have to build a Rube Goldberg machine of
+mocks and set them up just so to have test coverage.</p>
+    </main>
+</body>
+</html>
