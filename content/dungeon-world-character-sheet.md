@@ -25,11 +25,11 @@ Web Application features to allow it to work completely offline. You can
 install the application by simply visiting the website and clicking the
 install button in the URL bar of your favorite browser.
 
-<img src="images/dungeon-world-character-sheet/image1.png"
+<img src="/dungeon-world-character-sheet/image1.png"
 style="width:6.5in;height:0.29167in" />
 
 *Figure 1: Showing the install symbol in the browser URL bar.*
-<img src="images/dungeon-world-character-sheet/image2.png"
+<img src="/dungeon-world-character-sheet/image2.png"
 style="width:0.25in;height:0.20833in" />
 
 The choice to make this application a Progressive Web Application
@@ -39,12 +39,12 @@ website was to allow anybody in the world to use it regardless of high
 speed internet accessibility. In addition this bought me an incredibly
 performant web application as well.
 
-<img src="images/dungeon-world-character-sheet/image5.png"
+<img src="/dungeon-world-character-sheet/image5.png"
 style="width:6.5in;height:1.61111in" />
 
 *Figure 2: Lighthouse Metrics for unthrottled load of the page.*
 
-<img src="images/dungeon-world-character-sheet/image4.png"
+<img src="/dungeon-world-character-sheet/image4.png"
 style="width:6.5in;height:3.66667in" />
 
 *Figure 3: Showing I delivered a premium experience with very little
@@ -78,7 +78,7 @@ built in classes and we wanted to build in all of those skills and class
 features. We also wanted to let players add their own custom homebrew
 content as well. Let’s take a look at what the default form looks like.
 
-<img src="images/dungeon-world-character-sheet/image7.png"
+<img src="/dungeon-world-character-sheet/image7.png"
 style="width:6.5in;height:4.06944in" />
 
 *Figure 4: Empty Dungeon World Character Sheet Form*
@@ -87,7 +87,7 @@ As you can see in figure 4 we give our players the option to fill in
 whatever they want if they haven’t selected their class. This works
 great for homebrew content.
 
-<img src="images/dungeon-world-character-sheet/image10.png"
+<img src="/dungeon-world-character-sheet/image10.png"
 style="width:1.39063in;height:2.70399in" />
 
 *Figure 5: Smart options*
@@ -96,7 +96,7 @@ While we allow them to type whatever class they want in the field we
 give them a smart list of options for the built in Dungeon World
 classes. This system is used all throughout the character sheet.
 
-<img src="images/dungeon-world-character-sheet/image8.png"
+<img src="/dungeon-world-character-sheet/image8.png"
 style="width:6.5in;height:4.06944in" />
 
 *Figure 6: Once the class has been selected the form changes
@@ -113,7 +113,7 @@ characters.
 There are several inputs that allow a user to input information in a
 list style format. An example of this is the Gear field
 
-<img src="images/dungeon-world-character-sheet/image6.png"
+<img src="/dungeon-world-character-sheet/image6.png"
 style="width:6.5in;height:1.55556in" />
 
 *Figure 7: Gear field.*
@@ -138,7 +138,7 @@ localStorage cache every time a field was changed in the application.
 
 ### Saving and Loading
 
-<img src="images/dungeon-world-character-sheet/image3.png"
+<img src="/dungeon-world-character-sheet/image3.png"
 style="width:3.1875in;height:2.33333in" />
 
 *Figure 8: Saving and loading.*
@@ -147,7 +147,7 @@ Saving and loading can be done from the side bar right next to the
 character class. Saving will allow you to take a character sheet like
 the one in figure 9 and get a JSON file that looks like this.
 
-<img src="images/dungeon-world-character-sheet/image9.png"
+<img src="/dungeon-world-character-sheet/image9.png"
 style="width:6.5in;height:4.06944in" />
 
 *Figure 9: Example character sheet.*
