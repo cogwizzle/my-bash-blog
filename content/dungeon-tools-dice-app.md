@@ -55,7 +55,7 @@ inspired REST API. I will likely tie this feature directly into the
 Dungeon World Character app to allow for the app to roll dice. The API
 is simple. We have d4, d6, d8, d10, d12, and d20 endpoints. The format
 is
-[<u>https://dice.dungeontools.com/api/d4</u>](https://dice.dungeontools.com/api/d4).
+[<u>https://dice.dungeon-tools.com/api/d4</u>](https://dice.dungeontools.com/api/d4).
 These APIs are open and free to use.
 
 # Retrospective
