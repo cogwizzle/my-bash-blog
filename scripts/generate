@@ -21,11 +21,11 @@ RESULT=$(sqlite3 --init /dev/null blog.db <<EOF
 SELECT title, content, published FROM blog WHERE id = $ID;
 EOF
 )
-PUBLISHED=$(echo "$RESULT" | jq -r '.[0].published')
-if [ "$PUBLISHED" -eq 1 ]; then
-    echo "Post already published."
-    exit 1
-fi
+# PUBLISHED=$(echo "$RESULT" | jq -r '.[0].published')
+# if [ "$PUBLISHED" -eq 1 ]; then
+#     echo "Post already published."
+#     exit 1
+# fi
 # First column.
 TITLE=$(echo "$RESULT" | jq -r '.[0].title')
 # Second column.
